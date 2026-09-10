@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RetroCalc v0.8</title>
+  <style>
+    :root{--navy:#063d75;--blue:#075ca8;--green:#16844c;--red:#b42318;--ink:#17212b;--muted:#607080;--line:#d7e0e7;--page:#f4f7f9;--panel:#fff;--soft:#edf5fb;--warning:#fff6d9;--purple:#6b4ea0}
+    *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
+    main{width:min(100%,980px);margin:auto;padding:16px}.hero{background:linear-gradient(135deg,var(--navy),var(--blue));color:white;border-radius:22px;padding:22px}.hero h1{margin:0;font-size:clamp(1.7rem,5vw,2.5rem)}.hero p{margin:7px 0 0;color:#d8ecfb}.byline{font-weight:800;color:white!important}.beta{display:inline-block;margin-top:12px;padding:5px 9px;border:1px solid rgba(255,255,255,.45);border-radius:999px;font-size:.78rem;font-weight:900}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:14px}.panel h2,.panel h3{margin:0;color:var(--navy)}.muted{color:var(--muted)}
+    .validation{border-left:5px solid var(--purple)}.validation strong{color:var(--navy)}.seeking{margin:8px 0 0;padding-left:20px}
+    .upload{margin-top:16px;border:2px dashed #9db6ca;border-radius:16px;padding:22px;text-align:center;background:#fbfdff}.upload input{width:100%;font-size:16px}.privacy{font-size:.86rem;color:var(--navy);font-weight:700;margin-top:12px}
+    .status{margin-top:12px;padding:12px;border-radius:12px;background:var(--soft)}.error{background:#fef3f2;color:var(--red)}.warning{background:var(--warning);color:#6f5200}.success{background:#ecfdf3;color:#067647}.partial{background:#fff8e6;color:#754c00}.finding{border-left:5px solid var(--blue);padding-left:14px}.finding.reconciled{border-left-color:var(--green)}.finding.partially-verified,.finding.reconciled-minor-unresolved{border-left-color:#d69200}.finding.potential-discrepancy,.finding.cannot-determine{border-left-color:var(--red)}.finding.pending{border-left-color:var(--purple)}
+    .axis{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.axis-card{border:1px solid var(--line);border-radius:14px;padding:14px}.axis-card h3{font-size:1rem}.axis-label{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:900;margin-bottom:4px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}.metric{padding:14px;border:1px solid var(--line);border-radius:14px}.metric span{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;font-weight:800}.metric strong{display:block;margin-top:4px;color:var(--navy);font-size:1.55rem}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.86rem}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px 6px}th{color:var(--navy)}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}.unknown{font-weight:800;color:var(--red)}details{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}summary{cursor:pointer;padding:12px;font-weight:800;color:var(--navy)}.detail-body{padding:0 12px 12px}.hidden{display:none}
+    .scope-list{margin:8px 0 0;padding-left:20px}.scope-list li{margin:5px 0}.help{background:#f8fbfe}.help h3{margin-top:14px}.help h3:first-child{margin-top:0}.small{font-size:.82rem}.notice{margin-top:10px;padding:12px;border-left:4px solid var(--purple);background:#f6f2fb;border-radius:8px}.clarify{margin-top:12px;padding:14px;border:1px solid #e0cf93;background:#fffaf0;border-radius:12px}.clarify h3{margin:0 0 6px}.clarify p{margin:6px 0}.answers{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.answers button{border:1px solid #9db6ca;background:white;border-radius:9px;padding:8px 12px;font-weight:750;cursor:pointer}.answers button.selected{background:var(--navy);color:white;border-color:var(--navy)}.answers input{padding:8px;border:1px solid #9db6ca;border-radius:9px;font:inherit}
+    footer{margin:14px 0 0;text-align:center;color:var(--muted);font-size:.78rem}.observation{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfdff}.observation h3{margin:0 0 4px}.question-btn{border:0;background:transparent;color:var(--blue);font-weight:800;text-decoration:underline;cursor:pointer;padding:3px 0}.concern-box{margin-top:10px;padding:12px;border:1px solid #bfd1df;border-radius:12px;background:#f8fbfe}.concern-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.concern-options button{border:1px solid #9db6ca;background:white;border-radius:9px;padding:8px 10px;cursor:pointer}.plain-result{font-weight:800}.match{color:var(--green)}.needs{color:#8a5a00}.unknown-result{color:var(--red)}
+    @media(min-width:720px){.axis{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>RetroCalc</h1>
+    <p>Understand your retro pay and check the math.</p>
+    <p class="byline">Created by Andrew Raposo</p>
+    <span class="beta">BETA • STILL BEING VALIDATED</span>
+  </section>
+
+  <section class="panel validation">
+    <h2>What RetroCalc has been tested on</h2>
+    <p><strong>RetroCalc was built by taking apart real University Campus retro statements line by line and checking the math week by week.</strong> The current test cases include Baylor and non-Baylor OT, holidays, step changes, differentials, leave, and several other pay types.</p>
+    <p class="muted">Your pay history may include something RetroCalc has not seen yet. If that happens, it should tell you what it cannot check instead of guessing.</p>
+    <details>
+      <summary>Pay situations we still want more examples of</summary>
+      <div class="detail-body">
+        <ul class="seeking"><li>On-call / callback</li><li>Step increase during the retro period</li><li>Non-Baylor overtime</li><li>Unfamiliar or department-specific pay</li><li>Statements that seem to be missing older pay</li></ul>
+        <p class="small"><strong>Want to help?</strong> Contact Andrew privately. Your name and other identifying information are not needed and may be redacted. Sharing a statement for testing is optional and separate from using RetroCalc.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <h2>Check your retro PDF</h2>
+    <p class="muted">RetroCalc reads the pay lines, separates current pay from retro pay, and checks the parts it knows how to verify. Something that looks strange is not automatically treated as an error.</p>
+    <div class="upload">
+      <input id="pdfFile" type="file" accept="application/pdf,.pdf" aria-label="Choose Workday retro PDF">
+      <div class="privacy">🔒 Your PDF is read in this browser. This prototype does not send the file to RetroCalc.</div>
+    </div>
+    <div id="status" class="status">Choose your Workday PDF to begin.</div>
+  </section>
+
+  <section id="results" class="panel hidden">
+    <h2>Your results</h2>
+    <div class="axis">
+      <div class="axis-card"><span class="axis-label">Your retro pay</span><div id="calculationConclusion"></div></div>
+      <div class="axis-card"><span class="axis-label">Is more retro still coming?</span><div id="completenessConclusion"></div></div>
+    </div>
+    <div id="implementationNotices"></div>
+    <div id="observations"></div>
+    <div id="clarificationQuestions"></div>
+    <div id="supplementalDetails"></div>
+    <div id="reportActions" class="hidden" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button id="summaryReportBtn" type="button">Print / Save Basic Report</button><button id="fullReportBtn" type="button">Print / Save Full Audit Report</button></div>
+
+    <div class="status help">
+      <h3>What RetroCalc checks</h3>
+      <ul class="scope-list"><li>Whether the hours and pay shown on this statement were recalculated correctly under the pay rules RetroCalc has validated.</li><li>Whether all of the pay lines RetroCalc reads add back to the gross pay printed on the statement.</li></ul>
+      <h3>What this PDF cannot prove by itself</h3>
+      <ul class="scope-list"><li>Whether every hour you actually worked was recorded correctly in the first place.</li><li>Whether your taxes were withheld correctly.</li><li>Whether insurance or other benefit deductions were calculated correctly.</li></ul>
+    </div>
+
+    <h2 style="margin-top:18px">Pay-by-pay breakdown</h2>
+    <div id="metrics" class="grid"></div>
+    <div id="unknownMessage"></div>
+
+    <details open>
+      <summary>Pay details</summary>
+      <div class="detail-body"><table><thead><tr><th>Pay type</th><th class="num">Workday paid</th><th class="num">RetroCalc calculated</th><th class="num">Difference</th><th>Result</th><th></th></tr></thead><tbody id="codes"></tbody></table><div id="lineItemHelp"></div></div>
+    </details>
+
+    <details>
+      <summary>Overtime</summary>
+      <div class="detail-body" id="otDetails"></div>
+    </details>
+
+    <details>
+      <summary>What RetroCalc was able to check on this statement</summary>
+      <div class="detail-body" id="coverageDetails"></div>
+    </details>
+  </section>
+
+  <footer>Internal prototype v0.8 • Serious about numbers. Scout still handles keyboard inspection.</footer>
+</main>
+<script type="module">
+  import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.mjs';
+  import { extractPdfLines } from './js/pdf-text.mjs';
+  import { parseEarningsLines, summarizeRows, identifyRetroGross } from './js/retro-parser.mjs';
+  import { parseStatementMetadata } from './js/statement-meta.mjs';
+  import { auditAllOt } from './js/audit-engine.mjs';
+  import { auditFullRetro } from './js/full-audit.mjs';
+  import { buildAuditResult } from './js/audit-result.mjs';
+  import { analyzePendingDifferentials } from './js/supplemental-differentials.mjs';
+  import { buildClarificationQuestions, summarizeClarifications } from './js/clarification-engine.mjs';
+  import { buildPlainObservations } from './js/observations.mjs';
+  import { friendlyPayCode, concernOptions, concernResponse } from './js/line-item-help.mjs';
+  import { buildPersonalReportHTML } from './js/report-builder.mjs';
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.mjs';
+
+  const q = (s) => document.querySelector(s);
+  const fileInput=q('#pdfFile'),status=q('#status'),results=q('#results'),calculationConclusion=q('#calculationConclusion'),completenessConclusion=q('#completenessConclusion'),implementationNotices=q('#implementationNotices'),observations=q('#observations'),clarificationQuestions=q('#clarificationQuestions'),supplementalDetails=q('#supplementalDetails'),reportActions=q('#reportActions'),summaryReportBtn=q('#summaryReportBtn'),fullReportBtn=q('#fullReportBtn'),metrics=q('#metrics'),codeBody=q('#codes'),lineItemHelp=q('#lineItemHelp'),unknownMessage=q('#unknownMessage'),otDetails=q('#otDetails'),coverageDetails=q('#coverageDetails');
+  let lastReportContext=null;
+  let currentAuditContext=null;
+  let clarificationAnswers={};
+  const money = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'});
+  function setStatus(text,kind=''){status.className=`status ${kind}`.trim();status.textContent=text}
+  function metric(label,value){return `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`}
+  function conclusionMarkup(item, extra=''){return `<div class="finding ${extra || item.status}"><h3>${item.title}</h3><p>${item.explanation}</p></div>`}
+
+
+  function categoryRows(fullAudit){
+    const map=new Map();
+    for(const item of fullAudit.components||[]){
+      if(!map.has(item.payCode))map.set(item.payCode,{actual:0,expected:0,failed:false});
+      const x=map.get(item.payCode);x.actual+=item.actual;x.expected+=item.expected;if(!item.reconciled)x.failed=true;
+    }
+    for(const item of fullAudit.unknown||[]){
+      if(!map.has(item.payCode))map.set(item.payCode,{actual:item.netRetroAmount,expected:null,failed:false,unknown:true});
+    }
+    return [...map.entries()].map(([payCode,x])=>({payCode,...x,difference:x.expected==null?null:x.actual-x.expected})).sort((a,b)=>Math.abs(b.actual)-Math.abs(a.actual));
+  }
+
+  function supplementalMarkup(supplemental){
+    if(!(supplemental?.status==='pending-confirmed' && supplemental.direct2026Ytd!=null)) return '';
+    const directLabel=supplemental.directApril2025Forward!=null?'Night + Resource increase':'2026 Night + Resource increase';
+    const directValue=supplemental.directApril2025Forward ?? supplemental.direct2026Ytd;
+    let resolution='';
+    if(supplemental.pre2026HistoryResolution==='confirmed-none') resolution='<p class="small"><strong>2025 question answered:</strong> You told RetroCalc you did not work Night or Resource / Flow between April and December 2025. The direct amount above therefore covers the direct differential increase for the full period shown here.</p>';
+    else if(supplemental.pre2026HistoryResolution==='confirmed-older-hours-not-itemized') resolution='<p class="small"><strong>2025 hours confirmed:</strong> You told RetroCalc you did work Night or Resource / Flow in 2025. Those hours are not itemized on this statement, so RetroCalc will not guess at the final supplemental amount. When the separate payment arrives, upload that statement and RetroCalc can check it directly.</p>';
+    else resolution='<p class="small"><strong>One thing is still unknown:</strong> This statement first shows Night / Resource pay in 2026. If you also worked those hours in 2025, the separate payment will include additional pay that cannot be totaled from this statement.</p>';
+    const detailGap=supplemental.hasUnitemizedYtdHours?'<p class="small"><strong>The statement does not show every 2026 differential hour week by week.</strong> The year-to-date totals are larger than the itemized rows. That is enough to calculate the direct 2026 increase, but not enough to place every differential hour into the correct week for the full OT adjustment.</p>':'';
+    return `<div class="status partial"><strong>What we can already see about the separate Night / Resource payment</strong><div class="grid">${metric(directLabel,money.format(directValue))}${metric('Related OT found in detailed weeks',money.format(supplemental.visibleOtRipple))}</div>${resolution}${detailGap}</div>`;
+  }
+
+  function updateSupplementalFromAnswers(){
+    if(!currentAuditContext)return;
+    const supplemental=analyzePendingDifferentials(currentAuditContext.summary,currentAuditContext.metadata,clarificationAnswers);
+    currentAuditContext.supplemental=supplemental;
+    supplementalDetails.innerHTML=supplementalMarkup(supplemental);
+    lastReportContext={metadata:currentAuditContext.metadata,result:currentAuditContext.result,fullAudit:currentAuditContext.fullAudit,supplemental,clarifications:summarizeClarifications(currentAuditContext.questions,clarificationAnswers),observations:currentAuditContext.observations};
+    renderPayTable(currentAuditContext.fullAudit,supplemental);
+  }
+
+  function renderClarificationQuestions(questions){
+    if(!questions.length){clarificationQuestions.innerHTML='';return;}
+    clarificationQuestions.innerHTML=`<div class="clarify"><h3>One thing I need to confirm</h3><p class="small">I only ask when the answer can change what I am able to calculate.</p>${questions.map((question)=>`<div class="clarify" data-qid="${question.id}"><p><strong>${question.prompt}</strong></p><div class="answers">${question.options.map(o=>`<button type="button" data-answer="${o.value}">${o.label}</button>`).join('')}</div><p class="small">${question.why}</p></div>`).join('')}</div>`;
+
+    clarificationQuestions.querySelectorAll('[data-qid]').forEach((card)=>{
+      const id=card.dataset.qid;
+      card.querySelectorAll('[data-answer]').forEach((btn)=>btn.addEventListener('click',()=>{
+        clarificationAnswers[id]=btn.dataset.answer;
+        card.querySelectorAll('[data-answer]').forEach(b=>b.classList.toggle('selected',b===btn));
+        updateSupplementalFromAnswers();
+      }));
+    });
+  }
+
+  function renderObservations(items){
+    if(!items?.length){observations.innerHTML='';return;}
+    observations.innerHTML=`<div style="margin-top:14px"><h2 style="font-size:1.05rem">Things I noticed</h2>${items.map(o=>`<div class="observation"><h3>${o.title}</h3><p>${o.body}</p><button class="question-btn" type="button" data-observe-code="${o.payCode||''}">Something look wrong?</button></div>`).join('')}</div>`;
+    observations.querySelectorAll('[data-observe-code]').forEach(btn=>btn.addEventListener('click',()=>openConcernPanel(btn.dataset.observeCode)));
+  }
+
+  function resultLabel(row,supplemental){
+    if(row.unknown || row.expected==null) return '<span class="plain-result unknown-result">Not enough information</span>';
+    if(row.failed) return '<span class="plain-result needs">Needs a closer look</span>';
+    if(supplemental?.status==='pending-confirmed' && (row.payCode==='Night Shift Differential'||row.payCode==='Charge Pay')) return '<span class="plain-result match">Matches this check; more pay pending</span>';
+    return '<span class="plain-result match">Matches</span>';
+  }
+
+  function renderPayTable(fullAudit,supplemental){
+    const rows=categoryRows(fullAudit);
+    codeBody.innerHTML=rows.map(item=>`<tr><td>${friendlyPayCode(item.payCode)}</td><td class="num">${money.format(item.actual)}</td><td class="num">${item.expected==null?'—':money.format(item.expected)}</td><td class="num">${item.difference==null?'—':money.format(item.difference)}</td><td>${resultLabel(item,supplemental)}</td><td><button type="button" class="question-btn" data-pay-help="${item.payCode}">Question or problem?</button></td></tr>`).join('');
+    codeBody.querySelectorAll('[data-pay-help]').forEach(btn=>btn.addEventListener('click',()=>openConcernPanel(btn.dataset.payHelp)));
+  }
+
+  function openConcernPanel(payCode){
+    const opts=concernOptions(payCode);
+    lineItemHelp.innerHTML=`<div class="concern-box" data-concern-code="${payCode}"><h3>${friendlyPayCode(payCode)}</h3><p>What looks wrong or confusing?</p><div class="concern-options">${opts.map(o=>`<button type="button" data-concern="${o.id}">${o.label}</button>`).join('')}</div><div id="concernReply"></div></div>`;
+    lineItemHelp.scrollIntoView({behavior:'smooth',block:'nearest'});
+    lineItemHelp.querySelectorAll('[data-concern]').forEach(btn=>btn.addEventListener('click',()=>{
+      const r=concernResponse(payCode,btn.dataset.concern);
+      lineItemHelp.querySelector('#concernReply').innerHTML=`<div class="status help"><strong>${r.title}</strong><p>${r.body}</p><p class="small">${r.next}</p></div>`;
+    }));
+  }
+
+  function printReport(mode){
+    if(!lastReportContext)return;
+    const w=window.open('','_blank');
+    if(!w){setStatus('Your browser blocked the report window. Allow pop-ups and try again.','warning');return;}
+    w.document.open();w.document.write(buildPersonalReportHTML({...lastReportContext,mode}));w.document.close();
+    setTimeout(()=>w.print(),250);
+  }
+  summaryReportBtn.addEventListener('click',()=>printReport('summary'));
+  fullReportBtn.addEventListener('click',()=>printReport('full'));
+
+  fileInput.addEventListener('change',async()=>{
+    const file=fileInput.files?.[0]; if(!file)return;
+    results.classList.add('hidden');clarificationAnswers={};currentAuditContext=null;setStatus('Reading your pay statement…');
+    try{
+      const extracted=await extractPdfLines(file,pdfjsLib);
+      const textLines=extracted.lines.map(x=>x.text);
+      const metadata=parseStatementMetadata(textLines);
+      const rows=parseEarningsLines(textLines);
+      if(rows.length<20) throw new Error('I could not read enough pay lines to check this statement safely.');
+      const summary=summarizeRows(rows);
+      const gross=identifyRetroGross(summary,metadata);
+      const retroWeeks=summary.weeks.filter(w=>!(w.weekStart===metadata.payPeriodBegin&&w.weekEnd===metadata.payPeriodEnd));
+      const ot=auditAllOt(retroWeeks);
+      const fullAudit=auditFullRetro(summary,gross,metadata);
+      const result=buildAuditResult({metadata,summary,gross,fullAudit});
+      const questions=buildClarificationQuestions(summary,metadata);
+      const plainObservations=buildPlainObservations(summary,metadata);
+      const supplemental=analyzePendingDifferentials(summary,metadata,clarificationAnswers);
+      currentAuditContext={metadata,summary,result,fullAudit,supplemental,questions,observations:plainObservations};
+      lastReportContext={metadata,result,fullAudit,supplemental,clarifications:summarizeClarifications(questions,clarificationAnswers),observations:plainObservations};
+
+      calculationConclusion.innerHTML=conclusionMarkup(result.calculation);
+      const compExtra=result.completeness.status==='known-additional-payment-pending'?'pending':'';
+      completenessConclusion.innerHTML=conclusionMarkup(result.completeness,compExtra);
+      implementationNotices.innerHTML=(result.completeness.notices||[]).map(n=>`<div class="notice"><strong>${n.title}</strong><p>${n.publicExplanation}</p><p><strong>How far back:</strong> ${n.effectiveFromText||'See the latest update'}<br><strong>When it should be paid:</strong> ${n.expectedTimingText}</p><p class="small">${n.caveat}</p></div>`).join('');
+      renderObservations(plainObservations);
+      renderClarificationQuestions(questions);
+      supplementalDetails.innerHTML=supplementalMarkup(supplemental);
+      reportActions.classList.remove('hidden');
+
+      metrics.innerHTML=[metric('Pages read',extracted.pageCount),metric('Pay lines read',summary.rowCount.toLocaleString()),metric('Weeks found',summary.weeks.length.toLocaleString()),metric('Gross pay on statement',money.format(summary.grossParsed)),metric('Current pay on this check',money.format(gross.currentPeriodNonRetro)),metric('Retro pay on this check',money.format(gross.retroGross)),metric('RetroCalc total',money.format(fullAudit.reconstructedRetro)),metric('Difference',money.format(fullAudit.difference))].join('');
+      renderPayTable(fullAudit,supplemental);
+      if(summary.unknownCodes.length){const material=fullAudit.materialUnknowns.length;unknownMessage.innerHTML=`<div class="status ${material?'warning':''}"><strong>I found ${summary.unknownCodes.length} pay type${summary.unknownCodes.length===1?'':'s'} I do not understand well enough yet.</strong> ${material?`${material} could change the result, so I am not guessing about them.`:'They do not change the dollar result on this statement.'}</div>`}else{unknownMessage.innerHTML='<div class="status success">I recognized all of the pay types on this statement.</div>'}
+      otDetails.innerHTML=`<div class="grid">${metric('OT hours',ot.totals.ordinaryOtHours.toFixed(2))}${metric('Workday OT retro',money.format(ot.totals.actualOrdinaryRetro))}${metric('RetroCalc OT retro',money.format(ot.totals.expectedOrdinaryRetro))}${metric('Difference',money.format(ot.totals.ordinaryDifference))}${metric('Holiday OT hours',ot.totals.holidayOtHours.toFixed(2))}${metric('Holiday OT difference',money.format(ot.totals.holidayOtDifference))}</div><p class="muted">Your OT rate can change from week to week. Extra pay such as Baylor, Night, Weekend, Resource / Flow, Preceptor, or certain holiday pay can raise the OT rate for that week. A changing OT rate is not, by itself, a payroll error.</p>`;
+      const c=result.coverage;
+      coverageDetails.innerHTML=`<ul class="scope-list"><li>Pay lines add back to the printed gross pay: <strong>${c.statementGrossReconciled?'yes':'no'}</strong></li><li>Pay types recognized: <strong>${c.recognizedPayCodeCount}</strong></li><li>Pay types not yet understood: <strong>${c.unknownPayCodeCount}</strong></li><li>Separate calculations checked: <strong>${c.calculationComponentCount}</strong></li><li>Calculations needing a closer look: <strong>${c.failedComponentCount}</strong></li></ul><p class="small">Testing note: ${c.profile.note}</p>`;
+      results.classList.remove('hidden');
+      const kind=result.calculation.status==='reconciled'?'success':result.calculation.status==='potential-discrepancy'||result.calculation.status==='cannot-determine'?'error':'warning';
+      setStatus(`I read ${summary.rowCount.toLocaleString()} pay lines across ${extracted.pageCount} pages. ${result.calculation.title}`,kind);
+    }catch(error){console.error(error);setStatus(`I couldn't read this file reliably, so I stopped without giving you an answer. ${error.message||''}`,'error')}
+  });
+</script>
+</body>
+</html>

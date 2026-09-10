@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import { parseEarningsLines, summarizeRows } from '../js/retro-parser.mjs';
+import { parseStatementMetadata } from '../js/statement-meta.mjs';
+import { buildPlainObservations } from '../js/observations.mjs';
+
+const path=process.argv[2];
+if(!path) throw new Error('Usage: node test-observations.mjs <Test Case 002 text>');
+const lines=fs.readFileSync(path,'utf8').split(/\r?\n/);
+const metadata=parseStatementMetadata(lines);
+const summary=summarizeRows(parseEarningsLines(lines));
+const obs=buildPlainObservations(summary,metadata);
+const step=obs.find(x=>x.id==='step-change');
+assert.ok(step);
+assert.match(step.body,/Step 12 to Step 13/);
+assert.match(step.body,/late August/);
+const cert=obs.find(x=>x.id==='certification-bonus');
+assert.ok(cert);
+assert.match(cert.body,/\$500 certification bonus/);
+assert.match(cert.body,/November 2025/);
+console.log(JSON.stringify({ok:true,obs},null,2));
