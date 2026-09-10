@@ -12,6 +12,60 @@ export const WAGE_SCALES = {
 
 function approx(a,b,eps=.011){return a!=null && Math.abs(Number(a)-Number(b))<=eps;}
 
+function dateKey(mdY) {
+  if (!mdY) return null;
+  const [m,d,y] = mdY.split('/').map(Number);
+  if (!m || !d || !y) return null;
+  return y * 10000 + m * 100 + d;
+}
+
+function priorStep(rate) {
+  for (let step=1; step<WAGE_SCALES.prior.length; step++) {
+    if (approx(rate,WAGE_SCALES.prior[step])) return step;
+  }
+  return null;
+}
+
+export function correctedScaleForWeek(weekStart) {
+  const key = dateKey(weekStart);
+  if (key == null) return null;
+  if (key >= 20260405) return 'y2026';
+  if (key >= 20250406) return 'y2025';
+  return null;
+}
+
+/**
+ * Independently checks an old-rate -> corrected-rate pair against the
+ * negotiated University Campus wage table for that payroll week.
+ */
+export function validateRetroWagePair(priorRate, correctedRate, weekStart) {
+  const step = priorStep(priorRate);
+  const scale = correctedScaleForWeek(weekStart);
+
+  if (step == null || scale == null) {
+    return {
+      recognized: false,
+      matches: false,
+      step,
+      scale,
+      priorRate,
+      correctedRate,
+      reason: step == null ? 'prior-rate-not-on-known-scale' : 'week-outside-supported-retro-period',
+    };
+  }
+
+  const expectedCorrectedRate = WAGE_SCALES[scale][step];
+  return {
+    recognized: true,
+    matches: approx(correctedRate, expectedCorrectedRate),
+    step,
+    scale,
+    priorRate,
+    correctedRate,
+    expectedCorrectedRate,
+  };
+}
+
 export function matchStep(rate) {
   for (const [scale, values] of Object.entries(WAGE_SCALES)) {
     for (let step=1; step<values.length; step++) {

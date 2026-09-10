@@ -170,6 +170,19 @@ export function identifyRetroGross(summary, metadata = null, fallbackCurrentPeri
       .reduce((sum, x) => sum + x.netAmount, 0);
   }
 
+  // Certification Bonus is a separate flat award, not wage retro. Workday may
+  // associate it with an older date even when it is paid on the current check.
+  // Keep any net certification award outside the wage-retro total.
+  const certificationBonusNonRetro = metadata?.payPeriodBegin && metadata?.payPeriodEnd
+    ? summary.weeks
+        .filter((week) => !(week.weekStart === metadata.payPeriodBegin && week.weekEnd === metadata.payPeriodEnd))
+        .flatMap((week) => week.rows)
+        .filter((row) => row.payCode === 'Certification Bonus')
+        .reduce((sum, row) => sum + row.amount, 0)
+    : (summary.byPayCode.find((x) => x.payCode === 'Certification Bonus')?.netAmount || 0);
+
+  currentPeriodAmount += certificationBonusNonRetro;
+
   return {
     parsedGross: summary.grossParsed,
     printedGross: metadata?.currentGross ?? null,
@@ -177,6 +190,7 @@ export function identifyRetroGross(summary, metadata = null, fallbackCurrentPeri
       ? null
       : Number((summary.grossParsed - metadata.currentGross).toFixed(2)),
     currentPeriodNonRetro: Number(currentPeriodAmount.toFixed(2)),
+    certificationBonusNonRetro: Number(certificationBonusNonRetro.toFixed(2)),
     retroGross: Number((summary.grossParsed - currentPeriodAmount).toFixed(2)),
     method,
   };

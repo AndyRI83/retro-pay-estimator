@@ -3,6 +3,7 @@ import {
   inferPriorBaseRate,
   auditAllOt,
 } from './audit-engine.mjs';
+import { validateRetroWagePair } from './wage-scale.mjs';
 
 export const DIRECT_1X_CODES = new Set([
   'Regular Pay', 'Baylor Time', 'Holiday', 'Holiday Worked', 'Cash Out Holiday',
@@ -200,11 +201,69 @@ export function analyzeLimitedCodes(summary, currentPeriod = null) {
   });
 }
 
-export function auditFullRetro(summary, gross, metadata = null) {
-  const retroWeeks = summary.weeks.filter((week) => !(
+function retroWeeksFor(summary, metadata = null) {
+  return summary.weeks.filter((week) => !(
     metadata?.payPeriodBegin && metadata?.payPeriodEnd &&
     week.weekStart === metadata.payPeriodBegin && week.weekEnd === metadata.payPeriodEnd
   ));
+}
+
+/**
+ * Identifies the main wage-retro payment from the historical wage-repricing
+ * pattern itself, rather than requiring a specific check date.
+ */
+export function detectMainWageRetro(summary, metadata = null) {
+  const candidateWeeks = retroWeeksFor(summary, metadata)
+    .map((week) => {
+      const priorRate = inferPriorBaseRate(week.rows);
+      const correctedRate = inferCorrectedBaseRate(week.rows);
+      if (priorRate == null || correctedRate == null) return null;
+      return {
+        weekStart: week.weekStart,
+        weekEnd: week.weekEnd,
+        ...validateRetroWagePair(priorRate, correctedRate, week.weekStart),
+      };
+    })
+    .filter(Boolean);
+
+  const recognizedWeeks = candidateWeeks.filter((item) => item.recognized);
+  return {
+    detected: recognizedWeeks.length > 0,
+    candidateWeekCount: candidateWeeks.length,
+    recognizedWeekCount: recognizedWeeks.length,
+  };
+}
+
+function auditWageScaleWeeks(retroWeeks) {
+  const checked = [];
+  const failures = [];
+  const unresolved = [];
+
+  for (const week of retroWeeks) {
+    const priorRate = inferPriorBaseRate(week.rows);
+    const correctedRate = inferCorrectedBaseRate(week.rows);
+    if (priorRate == null || correctedRate == null) continue;
+
+    const item = {
+      weekStart: week.weekStart,
+      weekEnd: week.weekEnd,
+      ...validateRetroWagePair(priorRate, correctedRate, week.weekStart),
+    };
+
+    if (!item.recognized) {
+      unresolved.push(item);
+      continue;
+    }
+
+    checked.push(item);
+    if (!item.matches) failures.push(item);
+  }
+
+  return { checked, failures, unresolved };
+}
+
+export function auditFullRetro(summary, gross, metadata = null) {
+  const retroWeeks = retroWeeksFor(summary, metadata);
 
   const direct = retroWeeks.flatMap((week) => auditDirectWeek(week).components);
   const otAudit = auditAllOt(retroWeeks);
@@ -223,6 +282,8 @@ export function auditFullRetro(summary, gross, metadata = null) {
   const accountedActual = components.reduce((sum, item) => sum + item.actual, 0);
   const unknown = analyzeUnknownCodes(summary, metadata);
   const limited = analyzeLimitedCodes(summary, metadata);
+  const wageScale = auditWageScaleWeeks(retroWeeks);
+  const mainWageRetro = detectMainWageRetro(summary, metadata);
 
   return {
     components,
@@ -230,6 +291,8 @@ export function auditFullRetro(summary, gross, metadata = null) {
     overtimeComponents: overtime,
     unknown,
     limited,
+    wageScale,
+    mainWageRetro,
     reconstructedRetro: Number(reconstructed.toFixed(6)),
     accountedActualRetro: Number(accountedActual.toFixed(6)),
     payrollRetro: gross.retroGross,

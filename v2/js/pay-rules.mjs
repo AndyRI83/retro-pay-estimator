@@ -6,7 +6,7 @@ export const PAY_RULES = [
     formula: 'certificationPayment = flat dollar amount',
     confidence: 'verified-contract-plus-payroll',
     affects: ['Certification Bonus'],
-    notes: 'The $500 amount did not change with the wage raise, so this line adds $0 to the retro wage correction. Do not treat its Hours field as real worked hours.',
+    notes: 'The $500 amount does not change with the wage scale. It is a separate lump-sum award, is not tied to hours worked or the payroll week shown beside it, and is not included in the weekly OT-rate calculation. Do not treat its Hours field as real worked hours.',
   },
   {
     id: 'retro-benefit-deduction-adjustments',
@@ -83,11 +83,11 @@ export const PAY_RULES = [
   {
     id: 'fixed-diff-retro-repost',
     title: 'Why old differential lines may cancel to $0',
-    plainEnglish: 'Workday may reverse and repost an old fixed differential at the same rate. That produces no direct retro dollars on the first check, but the line can still matter because it can affect OT.',
+    plainEnglish: 'Workday may reverse and repost an old fixed differential at the same rate. That produces no direct retro dollars on the main wage-retro payment, but the line can still matter because it can affect OT.',
     formula: null,
     confidence: 'highly-validated',
     affects: ['Charge Pay', 'Evening Shift', 'Night Shift Differential', 'Weekend Differential', 'Preceptor'],
-    notes: 'Night and Resource / Flow increases are being paid separately under the current implementation guidance.',
+    notes: 'Night and Resource / Flow retro is separate from the main wage-retro payment. Its payment date is not confirmed.',
   },
   {
     id: 'retro-scope',

@@ -52,12 +52,12 @@ export const RULE_LEDGER = [
   },
   {
     id: 'fixed-dollar-rate-repost-current-retro-statement',
-    title: 'Fixed-dollar differential reversal/repost behavior on the first retro statement',
+    title: 'Fixed-dollar differential reversal/repost behavior on the main wage-retro statement',
     status: RULE_STATUS.HIGHLY_VALIDATED_EMPIRICAL,
     maySupportDiscrepancy: true,
     publicSummary: 'Workday can reverse and repost an old fixed differential at the same rate while it recalculates OT for that week.',
     evidence: ['complete Workday retro statement', 'weekly OT reconstruction'],
-    caveat: 'This describes the arithmetic on the current retro statement. It does not establish whether a later supplemental differential payment is also owed.',
+    caveat: 'This describes the arithmetic on the main wage-retro statement. Night / Resource retro is a separate payment and has no confirmed payment date.',
   },
   {
     id: 'weekly-ot-limited-context',
@@ -82,9 +82,9 @@ export const RULE_LEDGER = [
     title: 'Night / Resource differential increases retroactive to April 2025',
     status: RULE_STATUS.VERIFIED_IMPLEMENTATION_GUIDANCE,
     maySupportDiscrepancy: true,
-    publicSummary: 'Management confirmed to negotiating-committee leaders that Night and Resource / Flow increases are retroactive to April 2025 and will be paid separately from the first retro check. The payment date is not confirmed.',
+    publicSummary: 'Management confirmed to negotiating-committee leaders that Night and Resource / Flow increases are retroactive to April 2025 and are separate from the main wage-retro payment. The payment date is not confirmed.',
     evidence: ['management implementation guidance relayed by two MNA negotiating-committee leaders, 2026-09-04', 'successor agreement rates: Night $5.50; Resource $3.75'],
-    caveat: 'The first retro check should not be treated as erroneous solely because these items are absent; the supplemental payment must be audited when it posts.',
+    caveat: 'Their absence from the main wage-retro payment should not be treated as an error. The separate payment should be audited when it posts.',
   },
   {
     id: 'on-call-rate-2026-06-10',
@@ -117,8 +117,8 @@ export const RULE_LEDGER = [
     title: 'Certification Bonus is a flat-dollar earning',
     status: RULE_STATUS.VERIFIED_AUTHORITATIVE,
     maySupportDiscrepancy: false,
-    publicSummary: 'The contract describes the certification bonus as a flat $500 payment. It is not recalculated from hourly wages, and the Hours and Rate columns on this Workday line are not treated as ordinary hourly pay.',
-    evidence: ['CBA Section 7.05', 'Test Case 002 Workday example'],
+    publicSummary: 'The certification bonus is a separate $500 lump-sum award for an eligible certification. It is not hourly pay, is not tied to the payroll week shown beside it, is not recalculated from the wage scale, and is not included in the weekly OT-rate calculation.',
+    evidence: ['CBA Section 7.05 flat $500 certification bonus', 'Test Case 002 Workday example', 'confirmed project rule for certification-award payroll treatment'],
   },
   {
     id: 'underlying-hours-not-independently-verified',

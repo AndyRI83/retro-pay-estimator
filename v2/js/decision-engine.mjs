@@ -22,10 +22,16 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     };
   }
 
-  // A second coverage guard: every retro dollar must either be represented by
-  // an audited component or explicitly belong to an unknown/limited pay code.
-  // This catches a known pay line that parsed successfully but could not be
-  // reconstructed, which is safer than silently calling the statement a match.
+  if (fullAudit?.mainWageRetro && !fullAudit.mainWageRetro.detected) {
+    return {
+      status: 'cannot-determine',
+      title: "I don't see the main wage retro payment on this pay stub",
+      explanation: "For most University Campus nurses, the main wage retro is on the 9/3/2026 pay stub. If yours was paid differently, choose the pay stub that contains the main wage retro payment. Night / Resource retro is separate.",
+    };
+  }
+
+  // Every retro dollar must either be represented by an audited component or
+  // explicitly belong to an unknown/limited pay code.
   if (fullAudit?.accountedActualRetro != null && fullAudit?.payrollRetro != null) {
     const unresolvedKnownAmounts = [
       ...(fullAudit.unknown || []),
@@ -49,7 +55,7 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     };
   }
 
-  if (fullAudit.materialUnknowns.length) {
+  if ((fullAudit.materialUnknowns || []).length) {
     return {
       status: 'partially-verified',
       title: "I can't fully check this one",
@@ -57,16 +63,39 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     };
   }
 
-  if (fullAudit.componentFailures.length) {
-    const unsupportedFailures = fullAudit.componentFailures.filter((item) => !ruleCanSupportDiscrepancy(item.rule));
-    if (unsupportedFailures.length) {
-      return {
-        status: 'partially-verified',
-        title: "I can't fully check this one",
-        explanation: `${unsupportedFailures.length} part${unsupportedFailures.length === 1 ? '' : 's'} of the calculation differ from my current model, but the pay rule behind at least one of them is still being validated. I will not call this a payroll error without stronger evidence.`,
-      };
-    }
+  const unsupportedFailures = (fullAudit.componentFailures || [])
+    .filter((item) => !ruleCanSupportDiscrepancy(item.rule));
 
+  if (unsupportedFailures.length) {
+    return {
+      status: 'partially-verified',
+      title: "I can't fully check this one",
+      explanation: `${unsupportedFailures.length} part${unsupportedFailures.length === 1 ? '' : 's'} of the calculation differ from my current model, but the pay rule behind at least one of them is still being validated. I will not call this a payroll error without stronger evidence.`,
+    };
+  }
+
+  if ((fullAudit?.wageScale?.unresolved || []).length) {
+    const first = fullAudit.wageScale.unresolved[0];
+    return {
+      status: 'partially-verified',
+      title: "I can't safely identify one of the wage rates",
+      explanation: `I found wage-retro lines for the week of ${first.weekStart}, but the old hourly rate does not match a wage step I can safely identify. I stopped instead of guessing.`,
+    };
+  }
+
+  if ((fullAudit?.wageScale?.failures || []).length) {
+    const first = fullAudit.wageScale.failures[0];
+    const count = fullAudit.wageScale.failures.length;
+    const prefix = count === 1 ? 'For' : `In ${count} weeks, including`;
+
+    return {
+      status: 'potential-discrepancy',
+      title: 'An hourly rate needs a closer look',
+      explanation: `${prefix} the week of ${first.weekStart}, the old rate matches Step ${first.step}, but Workday's corrected hourly rate is $${Number(first.correctedRate).toFixed(2)}. The wage scale says $${Number(first.expectedCorrectedRate).toFixed(2)} for that step and time period.`,
+    };
+  }
+
+  if ((fullAudit.componentFailures || []).length) {
     const unexplained = fullAudit.componentFailures.reduce((sum, item) => sum + item.difference, 0);
     return {
       status: 'potential-discrepancy',
@@ -75,7 +104,7 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     };
   }
 
-  if ((fullAudit.limited || []).length || fullAudit.unknown.length) {
+  if ((fullAudit.limited || []).length || (fullAudit.unknown || []).length) {
     return {
       status: 'reconciled-minor-unresolved',
       title: 'The math on this statement looks right',
