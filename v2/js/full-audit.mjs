@@ -15,6 +15,17 @@ export const FIXED_UNCHANGED_RETRO_CODES = new Set([
   'Weekend Differential', 'Preceptor',
 ]);
 
+// These pay types have validated direct-dollar behavior, but their exact
+// treatment inside every possible weekly OT-rate calculation is not yet
+// strong enough to support an underpayment claim by itself. If one appears
+// in an OT week that fails our model, the result is deliberately downgraded
+// rather than labeled a potential payroll discrepancy.
+export const OT_TREATMENT_LIMITED_CODES = new Set([
+  'Unscheduled Personal',
+  'Scheduled Personal',
+  'Bereavement',
+]);
+
 function approx(a, b, epsilon = 0.001) {
   return Math.abs(a - b) <= epsilon;
 }
@@ -129,7 +140,9 @@ function otComponent(week, item, kind) {
     roundingTolerance: Number(tolerance.toFixed(6)),
     reconciled: Math.abs(difference) <= tolerance,
     lineCount: sourceRows.length,
-    rule: 'weekly-weighted-regular-rate-ot',
+    rule: week.rows.some((row) => OT_TREATMENT_LIMITED_CODES.has(row.payCode))
+      ? 'weekly-ot-limited-context'
+      : 'weekly-weighted-regular-rate-ot',
   };
 }
 
@@ -181,8 +194,8 @@ export function analyzeLimitedCodes(summary, currentPeriod = null) {
       netRetroAmount: Number(netRetroAmount.toFixed(2)),
       couldAffectConclusion: Math.abs(netRetroAmount) >= 0.01 || overtimeWeeks.length > 0,
       reason: overtimeWeeks.length
-        ? 'RetroCalc recognizes this code, but its weighted-overtime treatment has not yet been independently validated.'
-        : 'RetroCalc recognizes this code and its direct dollars, but some downstream payroll treatment is still being validated.',
+        ? 'The checker recognizes this code, but its weighted-overtime treatment has not yet been independently validated.'
+        : 'The checker recognizes this code and its direct dollars, but some downstream payroll treatment is still being validated.',
     };
   });
 }

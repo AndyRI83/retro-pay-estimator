@@ -38,7 +38,7 @@ export function buildPlainObservations(summary, metadata=null) {
     out.push({
       id:'certification-bonus',
       title:'Certification bonus',
-      body:`It looks like you received a ${new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(dollars)} certification bonus in ${(()=>{const [m,,y]=cert.weekStart.split('/').map(Number);return new Date(Date.UTC(y,m-1,1)).toLocaleString('en-US',{month:'long',year:'numeric',timeZone:'UTC'});})()}.`,
+      body:`It looks like you received a ${new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(dollars)} certification bonus in ${(()=>{const [m,,y]=cert.weekStart.split('/').map(Number);return new Date(Date.UTC(y,m-1,1)).toLocaleString('en-US',{month:'long',year:'numeric',timeZone:'UTC'});})()}. It is a fixed lump-sum payment, so the wage raise did not change this bonus.`,
       payCode:'Certification Bonus',
       kind:'observation',
     });

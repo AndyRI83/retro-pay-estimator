@@ -47,27 +47,27 @@ export function concernOptions(code){
 export function concernResponse(code, issue){
   if(issue==='why-rate-changes') return {
     title:'Why your OT rate changes',
-    body:'Your OT rate can change from week to week. Extra pay such as Night, Weekend, Resource / Flow, Baylor, or holiday pay can raise the OT rate for that week. RetroCalc checks those weeks separately.',
+    body:'Your OT rate can change from week to week. Extra pay such as Night, Weekend, Resource / Flow, Baylor, or holiday pay can raise the OT rate for that week. The checker checks those weeks separately.',
     next:'Use “Show the math” if you want to see the formula.'
   };
   if(issue==='step') return {
     title:'Checking your pay step',
-    body:'RetroCalc can usually see when your hourly rate changed. If the timing does not look right to you, the next useful detail is when you normally move to your next step each year.',
-    next:'Only enter that date if the change shown by RetroCalc looks wrong.'
+    body:'The checker can usually see when your hourly rate changed. If the timing does not look right to you, the next useful detail is when you normally move to your next step each year.',
+    next:'Only enter that date if the change shown by the checker looks wrong.'
   };
   if(issue==='missing' && (code==='Night Shift Differential'||code==='Charge Pay')) return {
     title:`Checking missing ${friendlyPayCode(code)} pay`,
-    body:'If you worked these hours but they are not shown on the retro statement, RetroCalc may need an earlier pay stub or another record to calculate the missing pay and any related OT change.',
-    next:'Tell RetroCalc roughly when the missing hours occurred.'
+    body:'If you worked these hours but they are not shown on the retro statement, the checker may need an earlier pay stub or another record to calculate the missing pay and any related OT change.',
+    next:'Note roughly when the missing hours occurred.'
   };
   if(issue==='meaning') return {
     title:friendlyPayCode(code),
-    body:`RetroCalc can explain what ${friendlyPayCode(code)} means and how it was handled on this statement.`,
-    next:'Open the Pay Code & Pay Rules Guide for the plain-English explanation.'
+    body:`The checker can explain what ${friendlyPayCode(code)} means and how it was handled on this statement.`,
+    next:'Open Pay terms for a plain-English explanation.'
   };
   return {
     title:`Let's check ${friendlyPayCode(code)}`,
-    body:'RetroCalc will keep the amount shown by Workday separate from what you tell us. Your answer can help identify missing hours, a wrong rate, or another issue that the PDF alone cannot prove.',
+    body:'The checker keeps the amount shown by Workday separate from anything you tell it. Your answer can help identify missing hours, a wrong rate, or another issue that the PDF alone cannot prove.',
     next:'Choose the detail that looks wrong and provide only the information needed for that item.'
   };
 }

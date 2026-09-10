@@ -6,8 +6,8 @@ export function assessPaymentCompleteness({ summary, fullAudit }) {
   if (notices.length) {
     return {
       status: 'known-additional-payment-pending',
-      title: 'More retro pay is still coming',
-      explanation: 'Night and Resource / Flow increases are being paid separately on the next check. This statement is not the final retro payment.',
+      title: 'Night / Resource increases are separate',
+      explanation: 'They are not counted as missing from this check. Payment timing is not confirmed.',
       notices,
     };
   }
@@ -15,16 +15,16 @@ export function assessPaymentCompleteness({ summary, fullAudit }) {
   if (fullAudit?.materialUnknowns?.length) {
     return {
       status: 'completeness-cannot-be-established',
-      title: "I can't tell yet whether this is the final retro payment",
-      explanation: 'An unfamiliar pay type could affect whether everything owed is included.',
+      title: "I can't tell whether anything else is still due",
+      explanation: 'An unfamiliar pay type could affect the answer.',
       notices: [],
     };
   }
 
   return {
     status: 'completeness-not-yet-established',
-    title: 'No other known retro payment is showing as pending',
-    explanation: 'RetroCalc can check this statement, but during Beta it cannot promise that no other retro pay could still be due.',
+    title: 'No separate payment is identified here',
+    explanation: 'This only describes what the checker can see from this statement.',
     notices: [],
   };
 }

@@ -1,5 +1,7 @@
 import { ruleCanSupportDiscrepancy } from './rule-ledger.mjs';
 
+const money = (value) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Math.abs(Number(value)||0));
+
 export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = [] }) {
   const grossMismatch = gross.grossParseDifference;
   const criticalParseProblem = parseWarnings.some((warning) => warning.severity === 'critical');
@@ -20,10 +22,29 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     };
   }
 
+  // A second coverage guard: every retro dollar must either be represented by
+  // an audited component or explicitly belong to an unknown/limited pay code.
+  // This catches a known pay line that parsed successfully but could not be
+  // reconstructed, which is safer than silently calling the statement a match.
+  if (fullAudit?.accountedActualRetro != null && fullAudit?.payrollRetro != null) {
+    const unresolvedKnownAmounts = [
+      ...(fullAudit.unknown || []),
+      ...(fullAudit.limited || []),
+    ].reduce((sum, item) => sum + (Number(item.netRetroAmount) || 0), 0);
+    const coverageGap = fullAudit.payrollRetro - fullAudit.accountedActualRetro - unresolvedKnownAmounts;
+    if (Math.abs(coverageGap) > 0.01) {
+      return {
+        status: 'cannot-determine',
+        title: "I couldn't safely account for every retro dollar",
+        explanation: `I could read the statement, but $${Math.abs(coverageGap).toFixed(2)} of the retro amount was not tied to a calculation I can safely reconstruct. I stopped instead of treating that as an underpayment.`,
+      };
+    }
+  }
+
   if ((fullAudit.materialLimitedCodes || []).length) {
     return {
       status: 'partially-verified',
-      title: 'Most of your retro pay checks out, but I need more information about one pay type',
+      title: "I can't fully check this one",
       explanation: `${fullAudit.materialLimitedCodes.length} pay type${fullAudit.materialLimitedCodes.length === 1 ? '' : 's'} could change the answer, and I do not have enough validated information about that rule yet. I will show you exactly which part needs a closer look.`,
     };
   }
@@ -31,7 +52,7 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
   if (fullAudit.materialUnknowns.length) {
     return {
       status: 'partially-verified',
-      title: 'Most of your retro pay checks out, but I found a pay type I do not understand well enough yet',
+      title: "I can't fully check this one",
       explanation: `${fullAudit.materialUnknowns.length} unfamiliar pay type${fullAudit.materialUnknowns.length === 1 ? '' : 's'} could change the result. I kept those lines in the audit instead of ignoring them.`,
     };
   }
@@ -41,7 +62,7 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     if (unsupportedFailures.length) {
       return {
         status: 'partially-verified',
-        title: "I found a difference, but I can't tell yet whether it is wrong",
+        title: "I can't fully check this one",
         explanation: `${unsupportedFailures.length} part${unsupportedFailures.length === 1 ? '' : 's'} of the calculation differ from my current model, but the pay rule behind at least one of them is still being validated. I will not call this a payroll error without stronger evidence.`,
       };
     }
@@ -49,22 +70,22 @@ export function decideAuditResult({ metadata, gross, fullAudit, parseWarnings = 
     const unexplained = fullAudit.componentFailures.reduce((sum, item) => sum + item.difference, 0);
     return {
       status: 'potential-discrepancy',
-      title: 'Something may be wrong and needs a closer look',
-      explanation: `${fullAudit.componentFailures.length} part${fullAudit.componentFailures.length === 1 ? '' : 's'} of the calculation fall outside normal payroll rounding under rules that are well supported. The total unexplained difference is ${unexplained < 0 ? '-' : ''}$${Math.abs(unexplained).toFixed(2)}.`,
+      title: 'This needs a closer look',
+      explanation: `${fullAudit.componentFailures.length} part${fullAudit.componentFailures.length === 1 ? '' : 's'} of the calculation fall outside normal payroll rounding under rules that are well supported. The total unexplained difference is ${unexplained < 0 ? '-' : ''}$${Math.abs(unexplained).toFixed(2)}. This does not by itself prove that you were underpaid.`,
     };
   }
 
   if ((fullAudit.limited || []).length || fullAudit.unknown.length) {
     return {
       status: 'reconciled-minor-unresolved',
-      title: 'Your retro pay matches our calculation',
+      title: 'The math on this statement looks right',
       explanation: 'One small part still has limited validation, but it does not change the amount calculated for this statement.',
     };
   }
 
   return {
     status: 'reconciled',
-    title: 'Your retro pay matches our calculation',
-    explanation: `Workday shows $${fullAudit.payrollRetro.toFixed(2)} in retro pay on this statement. RetroCalc calculates $${fullAudit.reconstructedRetro.toFixed(2)}. The small difference is within normal payroll rounding.`,
+    title: 'The math on this statement looks right',
+    explanation: `Workday shows ${money(fullAudit.payrollRetro)} in retro pay. The independent check gives ${money(fullAudit.reconstructedRetro)}. The small difference is within normal payroll rounding.`,
   };
 }

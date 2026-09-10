@@ -113,7 +113,7 @@ export function analyzePendingDifferentials(summary, metadata = null, clarificat
   return {
     status: items.length ? 'pending-confirmed' : 'not-applicable-from-statement',
     effectiveFrom: 'April 2025',
-    expectedTiming: "next week's check",
+    expectedTiming: 'not confirmed',
     items,
     direct2026Ytd: allYtdDirectKnown ? direct2026Ytd : null,
     visibleOtRipple: Number(visibleOtRipple.toFixed(2)),
@@ -128,10 +128,10 @@ export function analyzePendingDifferentials(summary, metadata = null, clarificat
       allPre2026ConfirmedNone
         ? 'The user confirmed no qualifying Night / Resource hours occurred in April-December 2025, so the 2026 YTD direct differential total can be treated as complete for the direct premium increase.'
         : anyPre2026ConfirmedYes
-          ? 'The user confirmed qualifying Night / Resource hours occurred in 2025. Those 2025 hours are not itemized on this statement, so this PDF cannot predict the full supplemental amount. RetroCalc should audit the separate supplemental statement when it posts instead of requiring older pay stubs in the normal workflow.'
-          : 'The YTD fields on a 2026 statement do not show April-December 2025 differential hours. RetroCalc asks a targeted question rather than assuming those missing 2025 hours are zero.',
+          ? 'The user confirmed qualifying Night / Resource hours occurred in 2025. Those 2025 hours are not itemized on this statement, so this PDF cannot predict the full supplemental amount. The separate payment should be checked when it posts instead of requiring older pay stubs in the normal workflow.'
+          : 'The YTD fields on a 2026 statement do not show April-December 2025 differential hours. The checker does not assume those missing 2025 hours are zero.',
       hasUnitemizedYtdHours ? 'The year-to-date totals are larger than the hours itemized week by week on this statement. The YTD totals can support the direct 2026 rate increase, but the missing weekly detail prevents an exact calculation of the full related OT adjustment.' : 'The statement itemizes the 2026 differential hours needed for the related OT calculation.',
-      'The supplemental payment should be audited again when it posts; that later statement can establish the employer\'s final implementation and total.',
+      'The separate payment should be checked when it posts; that later statement can establish the final total.',
     ],
   };
 }

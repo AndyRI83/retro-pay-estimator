@@ -1,6 +1,4 @@
-export const LIMITED_KNOWN_PAY_CODES = new Set([
-  'Certification Bonus',
-]);
+export const LIMITED_KNOWN_PAY_CODES = new Set([]);
 
 export const KNOWN_PAY_CODES = new Set([
   'Bereavement',

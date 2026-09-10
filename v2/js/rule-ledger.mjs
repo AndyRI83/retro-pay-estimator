@@ -2,7 +2,7 @@
  * Rule Ledger
  *
  * This is the gatekeeper for claims. A mathematically tidy result is not enough:
- * RetroCalc may call something a potential discrepancy only when the rule behind
+ * The checker may call something a potential discrepancy only when the rule behind
  * that calculation is strong enough to support that conclusion.
  */
 
@@ -60,6 +60,15 @@ export const RULE_LEDGER = [
     caveat: 'This describes the arithmetic on the current retro statement. It does not establish whether a later supplemental differential payment is also owed.',
   },
   {
+    id: 'weekly-ot-limited-context',
+    title: 'Weekly overtime with a pay type whose OT treatment is still being validated',
+    status: RULE_STATUS.WELL_SUPPORTED,
+    maySupportDiscrepancy: false,
+    publicSummary: 'The checker can check much of this week, but one pay type in the week does not yet have enough OT examples to support an underpayment claim.',
+    evidence: ['validated direct-dollar behavior', 'limited or incomplete OT-treatment examples'],
+    caveat: 'A mismatch in this context is shown as needing more information, not as a potential payroll discrepancy.',
+  },
+  {
     id: 'personal-ot-divisor-observed',
     title: 'Unscheduled Personal divisor treatment',
     status: RULE_STATUS.WELL_SUPPORTED,
@@ -73,7 +82,7 @@ export const RULE_LEDGER = [
     title: 'Night / Resource differential increases retroactive to April 2025',
     status: RULE_STATUS.VERIFIED_IMPLEMENTATION_GUIDANCE,
     maySupportDiscrepancy: true,
-    publicSummary: 'Management confirmed to negotiating-committee leaders that Night and Resource / Flow increases are retroactive to April 2025 and will be paid separately on the next check.',
+    publicSummary: 'Management confirmed to negotiating-committee leaders that Night and Resource / Flow increases are retroactive to April 2025 and will be paid separately from the first retro check. The payment date is not confirmed.',
     evidence: ['management implementation guidance relayed by two MNA negotiating-committee leaders, 2026-09-04', 'successor agreement rates: Night $5.50; Resource $3.75'],
     caveat: 'The first retro check should not be treated as erroneous solely because these items are absent; the supplemental payment must be audited when it posts.',
   },
@@ -84,7 +93,7 @@ export const RULE_LEDGER = [
     maySupportDiscrepancy: true,
     publicSummary: 'The agreement raises the non-restricted on-call rate beginning June 10, 2026, and management confirmed that call retro is due back to June 2026.',
     evidence: ['tentative-agreement Section 6.07 language', 'management implementation guidance relayed by negotiating-committee leadership, 2026-09-04'],
-    caveat: 'RetroCalc still needs real Workday on-call examples to validate the exact payroll code, callback variants, and weighted-overtime interaction before automating a complete call-pay audit.',
+    caveat: 'The checker still needs real Workday on-call examples to validate the exact payroll code, callback variants, and weighted-overtime interaction before automating a complete call-pay audit.',
   },
   {
     id: 'bereavement-base-linked-1x',
@@ -108,9 +117,8 @@ export const RULE_LEDGER = [
     title: 'Certification Bonus is a flat-dollar earning',
     status: RULE_STATUS.VERIFIED_AUTHORITATIVE,
     maySupportDiscrepancy: false,
-    publicSummary: 'The contract describes the certification bonus as a flat $500 payment. The Hours and Rate columns on this Workday line do not behave like normal hourly pay.',
+    publicSummary: 'The contract describes the certification bonus as a flat $500 payment. It is not recalculated from hourly wages, and the Hours and Rate columns on this Workday line are not treated as ordinary hourly pay.',
     evidence: ['CBA Section 7.05', 'Test Case 002 Workday example'],
-    caveat: 'The bonus treatment in weighted overtime has not yet been independently validated and should be surfaced if it could matter.',
   },
   {
     id: 'underlying-hours-not-independently-verified',
@@ -149,7 +157,7 @@ export function publicRuleStatusLabel(status) {
     case RULE_STATUS.VERIFIED_IMPLEMENTATION_GUIDANCE: return 'Confirmed implementation guidance';
     case RULE_STATUS.REPORTED_IMPLEMENTATION_GUIDANCE: return 'Reported guidance';
     case RULE_STATUS.UNRESOLVED: return 'Not enough information yet';
-    case RULE_STATUS.SCOPE_DEFINITION: return 'What RetroCalc can check';
+    case RULE_STATUS.SCOPE_DEFINITION: return 'What the checker can check';
     default: return 'Unknown status';
   }
 }

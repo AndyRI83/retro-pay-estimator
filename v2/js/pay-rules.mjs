@@ -2,11 +2,11 @@ export const PAY_RULES = [
   {
     id: 'flat-dollar-certification-bonus',
     title: 'Certification bonus',
-    plainEnglish: 'A certification bonus is a flat $500 payment. The numbers Workday shows in the Hours and Rate columns for this item do not behave like ordinary hourly pay.',
+    plainEnglish: 'This is a one-time $500 payment for an eligible certification. It is not hourly pay. The strange Hours and Rate numbers Workday may show on this line are not used to calculate the bonus.',
     formula: 'certificationPayment = flat dollar amount',
     confidence: 'verified-contract-plus-payroll',
     affects: ['Certification Bonus'],
-    notes: 'Do not treat the Hours field as literal paid hours for this item. Its effect on OT still needs more real examples.',
+    notes: 'The $500 amount did not change with the wage raise, so this line adds $0 to the retro wage correction. Do not treat its Hours field as real worked hours.',
   },
   {
     id: 'retro-benefit-deduction-adjustments',
@@ -15,7 +15,7 @@ export const PAY_RULES = [
     formula: null,
     confidence: 'observed-multiple-real-lines',
     affects: ['AD&D', 'Long Term Disability', 'Short Term Disability', 'Supplemental Life'],
-    notes: 'RetroCalc does not yet check whether every insurance adjustment amount is correct.',
+    notes: 'The checker does not yet check whether every insurance adjustment amount is correct.',
   },
   {
     id: 'weighted-regular-rate',
@@ -33,7 +33,7 @@ export const PAY_RULES = [
     formula: 'otRate = baseRate + 0.5 × weeklyRegularRate',
     confidence: 'verified-contract-plus-payroll',
     affects: ['Overtime Pay'],
-    notes: 'RetroCalc checks OT week by week instead of using one average OT rate.',
+    notes: 'The checker checks OT week by week instead of using one average OT rate.',
   },
   {
     id: 'baylor-ot-treatment',
@@ -91,8 +91,8 @@ export const PAY_RULES = [
   },
   {
     id: 'retro-scope',
-    title: 'What RetroCalc can check from this PDF',
-    plainEnglish: 'RetroCalc checks whether the hours and pay shown by Workday were recalculated correctly. The retro PDF alone cannot prove that every hour you actually worked was recorded correctly in the first place.',
+    title: 'What the checker can see in this PDF',
+    plainEnglish: 'The checker checks whether the hours and pay shown by Workday were recalculated correctly. The retro PDF alone cannot prove that every hour you actually worked was recorded correctly in the first place.',
     formula: null,
     confidence: 'scope-definition',
     affects: [],
