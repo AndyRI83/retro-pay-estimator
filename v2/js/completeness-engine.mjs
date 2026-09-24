@@ -5,9 +5,9 @@ export function assessPaymentCompleteness({ summary, fullAudit }) {
 
   if (notices.length) {
     return {
-      status: 'known-additional-payment-pending',
-      title: 'Night / Resource increases are separate',
-      explanation: 'They are not counted as missing from this check. Payment timing is not confirmed.',
+      status: 'known-additional-payment-separate',
+      title: 'Night / Resource increases are handled in Part 2',
+      explanation: 'They are not counted as missing from Part 1. The later adjustment also includes overtime changes caused by the higher differentials.',
       notices,
     };
   }

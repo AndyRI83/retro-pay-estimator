@@ -1,0 +1,111 @@
+Retro Pay Checker final pre-release validation
+Prepared 2026-09-23
+
+VERDICT
+Automated and desktop/headless validation: PASS.
+The candidate is ready for one final local + iPhone/Safari smoke test on v2-audit-dev before merging to main.
+
+IMPORTANT QA DEFECT FOUND AND FIXED
+During the hostile pre-release review, the Night & Resource audit could still return a reassuring result if a PDF was truncated in a way that removed a matched adjustment pair. The parsed lines still reconciled internally, but they no longer reconciled to Workday's printed gross.
+
+Fixes now in this candidate:
+- Night & Resource audit fails closed when parsed pay lines do not reconcile to the printed gross.
+- A failed statement-integrity check no longer exposes a definitive reconstructed Night & Resource total.
+- Old-rate/new-rate differential hours are checked for matched historical pairs.
+- Unknown historical pay types, including unresolved Call / callback pay, prevent a fully verified result instead of being silently ignored.
+- Re-uploading a second PDF in the same browser session no longer loses the live result element used by the UI.
+- Combined tax/deduction comparison refreshes on a second analysis instead of retaining stale values.
+
+REAL-STATEMENT ACCEPTANCE RESULTS
+PASS — Andy main retro: Workday $12,262.24; independent $12,262.174296; difference $0.065704
+PASS — Tina main retro: Workday $7,596.22; independent $7,596.238159; difference -$0.018159
+PASS — Andy 9/3 statement can support at least $602.72 of the later Night & Resource correction. This is a lower bound only, not a prediction of the full later payment.
+PASS — Andy Night & Resource retro: Workday $1,415.30; independent $1,415.03; difference $0.27
+PASS — Night direct correction: $1,009.02
+PASS — Resource / Flow direct correction: $341.30 Workday vs $341.29 independently, $0.01 rounding difference
+PASS — ordinary OT correction: $61.94 Workday; independently reconstructed $61.64
+PASS — Holiday OT correction: $3.04 Workday; independently reconstructed $3.08
+PASS — 67 Night & Resource OT weeks independently checked; 0 unresolved in Andy's combined case
+PASS — combined retro: Workday $13,677.54; independent $13,677.204296; difference $0.335704
+PASS — Andy 9/3 post-tax deductions reconcile: $64.67 dated adjustments + $27.32 current = $91.99 printed
+PASS — Andy 9/24 post-tax deductions reconcile: $0.69 dated adjustments + $27.32 current = $28.01 printed
+
+REGRESSION SUITE
+PASS — test-release-safety.mjs
+PASS — test-decision-engine.mjs
+PASS — test-new-pay-codes.mjs
+PASS — test-adversarial.mjs
+PASS — test-completeness-engine.mjs
+PASS — test-differential-retro.mjs
+PASS — test-statement-extras.mjs
+PASS — test-safari-pdf-reader.mjs
+PASS — test-line-item-help.mjs
+PASS — test-parser.mjs against Andy main-retro fixture
+PASS — test-audit-engine.mjs against Andy main-retro fixture
+PASS — test-full-audit.mjs against Andy main-retro fixture
+PASS — test-clarification-engine.mjs against Tina fixture
+PASS — test-observations.mjs against Tina fixture
+PASS — test-supplemental-differentials.mjs against Tina fixture
+PASS — test-part2-adversarial.mjs against Andy main + Night/Resource fixtures
+
+ADVERSARIAL / FAIL-CLOSED COVERAGE
+PASS — truncated statement / gross mismatch => cannot determine
+PASS — known retro dollars not covered by reconstruction => cannot determine
+PASS — unknown code in an OT week => partial verification only
+PASS — unresolved Call / callback pay => partial verification only
+PASS — wrong wage-rate correction => potential discrepancy
+PASS — weak/unvalidated arithmetic rule cannot create a definitive discrepancy
+PASS — Night/Resource-only statement is not mistaken for the main retro payment
+PASS — single old or new differential rate alone cannot create a false Night/Resource-retro detection
+PASS — malformed old/new differential hour pairing downgrades verification
+PASS — unknown historical Call Pay downgrades Night/Resource verification
+
+SAFARI / STATIC INTEGRITY
+PASS — Safari PDF reader still uses streamTextContent().getReader()
+PASS — page.getTextContent() is not used in the executable parser path
+PASS — PDF reader lock is released
+PASS — all JavaScript syntax checks
+PASS — all v2/js modules import successfully
+PASS — local HTML/script/module references resolve
+PASS — generated reports do not automatically call print()
+PASS — Print / Save PDF invokes print only after the user taps the button
+PASS — generated main, Night/Resource, and combined reports fit a 390px mobile viewport without horizontal page overflow
+PASS — generated reports use Main retro / Night & Resource language rather than visible Part 1 / Part 2 terminology
+PASS — generated reports omit the discarded 9/3-estimate limitation section and prospective-rate section
+
+UX / CONTENT GUARDS
+PASS — visible checker UI uses Main retro payment / Night & Resource retro payment / Check both retro payments
+PASS — unresolved Call / callback pay remains explicitly unresolved and fail-closed
+PASS — Charge Pay is described as Resource / Flow and explicitly distinguished from Call / callback pay
+PASS — combined tax and deduction comparison uses structured tables rather than concatenated text
+PASS — Privacy keeps technical analytics details collapsed and states that payroll/PDF content is not sent to analytics
+PASS — GoatCounter events are generic feature/page events, not payroll-result payloads
+
+ANALYTICS / PRIVACY
+Configured GoatCounter endpoint: https://andyr83.goatcounter.com/count
+Analytics failure is non-blocking.
+The app does not intentionally send PDF content, PDF filename, employee name/ID, pay amount, pay code, statement date, or audit result in analytics events.
+
+STILL REQUIRES REAL-DEVICE SMOKE TEST BEFORE MAIN
+- Main retro upload on iPhone/Safari
+- Night & Resource retro upload on iPhone/Safari
+- two-PDF upload in both orders on iPhone/Safari
+- repeat a second upload in the same page session
+- Save or send report action opens the iOS share sheet when supported
+- Print / Save PDF launches print only when deliberately tapped
+- Wage Scale Save or send / Download / Print controls
+- GoatCounter shows pageviews and generic completion events in the andyr83 dashboard
+
+NO LIVE DEPLOYMENT WAS PERFORMED BY THIS PACKAGE.
+Apply to v2-audit-dev, run the local smoke test, then merge only after it passes.
+
+SOCIAL / LINK PREVIEW
+PASS — final social preview uses UMass Memorial Medical Center branding
+PASS — landing-page metadata reflects the expanded tool: Main retro, Night & Resource retro, or both
+PASS — canonical URL is https://andyri83.github.io/retro-pay-estimator/
+PASS — Open Graph and Twitter image use a new versioned asset URL to reduce stale social-cache reuse
+PASS — social preview image is exactly 1200 x 630 PNG
+PASS — social preview no longer says only “upload your 9/3 pay stub” or “check your 9/3 retro payment”
+PASS — final social card uses the approved Medical Center artwork and a calculator display that reads “CHECK YOUR PAY”
+PASS — Open Graph image type, dimensions, site name, and alt text are declared
+POST-DEPLOY — run the public URL through Facebook Sharing Debugger and choose Scrape Again

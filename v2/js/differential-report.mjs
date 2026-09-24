@@ -1,0 +1,30 @@
+import { esc, money, reportCss, actionBar, actionScript, taxSection } from './report-ui.mjs';
+
+export function buildDifferentialReportHTML({ metadata, audit, extras, mode='summary' }) {
+  const full = mode === 'full';
+  const combined = Boolean(audit?.hasPart1Context && audit?.reconstructedRetro != null);
+  const title = combined
+    ? (audit.status === 'reconciled' ? 'The Night & Resource retro looks right' : audit.title)
+    : audit?.title;
+  const explanation = combined
+    ? audit?.explanation
+    : 'The direct Night / Resource changes reconcile. The statement also contains overtime adjustments; the 9/3 main retro statement is needed to independently rebuild those historical OT calculations week by week.';
+  const hero = audit?.status === 'cannot-determine' ? 'stop' : audit?.status === 'partially-verified' ? 'partial' : 'good';
+  const historical = extras?.postTaxHistoricalTotal || 0;
+  const stories = [
+    ['Night was repriced from $5.00 to $5.50.','The dated adjustment rows were reversed at the old rate and reposted at the new one.'],
+    ['Resource / Flow was repriced from $3.50 to $3.75.','Workday labels this pay type “Charge Pay” on the statement.'],
+    ['Overtime was recalculated too.',`The statement contains ${money(audit?.ordinaryOtActual)} of ordinary OT adjustment and ${money(audit?.holidayOtActual)} of Holiday OT adjustment. Higher differentials can raise the weekly OT rate, so seeing OT appear again is expected.`],
+  ];
+  if (historical) stories.push(['Workday also made dated benefit-deduction adjustments.',`Those total ${money(historical)} on this statement. They are deductions, not retro wages.`]);
+  const directRows = (audit?.directComponents||[]).map((x)=>`<tr><td>${esc(x.label)}</td><td>${money(x.oldRate)} → ${money(x.newRate)}</td><td class="num">${money(x.actual)}</td><td class="num">${money(x.expected)}</td><td>${x.reconciled?'<span class="status-good">✓</span>':'<span class="status-warn">!</span>'}</td></tr>`).join('');
+  const detail = full ? `<section class="section"><h2>How this payment adds up</h2><div class="card"><div class="row"><span>Direct Night / Resource correction</span><b>${money(audit?.directActual)}</b></div><div class="row"><span>Ordinary OT adjustment</span><b>${money(audit?.ordinaryOtActual)}</b></div><div class="row"><span>Holiday OT adjustment</span><b>${money(audit?.holidayOtActual)}</b></div><div class="row"><span>Accounted retro</span><b>${money(audit?.accountedRetro)}</b></div></div></section>` : '';
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#063d75"><title>Night & Resource Retro Report</title><style>${reportCss()}</style></head><body><main class="report">${actionBar()}<article class="sheet"><header><h1>Night & Resource retro · ${full?'Detailed report':'Summary'}</h1><div class="kicker">Workday check ${esc(metadata?.checkDate||'date unknown')} · ${full?'Detailed report':'Summary'}</div></header><div class="hero ${hero}"><h2>${esc(title||'Night & Resource retro checked')}</h2><p>${esc(explanation||'')}</p></div>
+  <div class="numbers"><div class="number"><span>Workday Night & Resource retro</span><b>${money(audit?.payrollRetro)}</b></div><div class="number"><span>Direct Night / Resource</span><b>${money(audit?.directActual)}</b></div><div class="number"><span>OT adjustments identified</span><b>${money(audit?.observedOtRipple)}</b></div></div>
+  <section class="section"><h2>Retro timeline</h2><div class="timeline"><div class="timepoint"><b>4/6/2025</b><span>Retro period begins</span></div><div class="timepoint"><b>${esc(metadata?.checkDate||'Later payment')}</b><span>Night / Resource correction</span></div></div></section>
+  <section class="section"><h2>What changed</h2><div class="card plainsteps">${stories.map((x,i)=>`<div class="plainstep"><div class="dot">${i+1}</div><div><b>${esc(x[0])}</b><div class="small muted">${esc(x[1])}</div></div></div>`).join('')}</div></section>
+  <section class="section"><h2>Night / Resource changes</h2><div class="tablewrap"><table><thead><tr><th>Pay type</th><th>Rate change</th><th class="num">Workday</th><th class="num">Independent</th><th>Result</th></tr></thead><tbody>${directRows}</tbody></table></div></section>
+  <section class="section"><h2>Why overtime appears again</h2><div class="card"><div class="row"><span>Ordinary OT adjustment</span><b>${money(audit?.ordinaryOtActual)}</b></div><div class="row"><span>Holiday OT adjustment</span><b>${money(audit?.holidayOtActual)}</b></div>${combined?`<div class="row"><span>Independent ordinary OT reconstruction</span><b>${money(audit?.ordinaryOtExpected)}</b></div><div class="row"><span>Independent Holiday OT reconstruction</span><b>${money(audit?.holidayOtExpected)}</b></div>`:''}<div class="small muted" style="margin-top:7px">Night and Resource / Flow pay are part of the weekly overtime-rate calculation. When those differentials increased retroactively, affected OT weeks had to be recalculated too. Seeing OT rows again is expected.</div></div>${combined?'':`<div class="callout info small"><b>Why the 9/3 statement helps:</b> this statement shows the OT correction dollars, but it does not repeat every historical hour used to calculate the original weekly OT rate. Upload both PDFs together for the strongest independent OT check.</div>`}</section>
+  ${taxSection(extras)}${detail}
+  <section class="section"><div class="callout info small"><b>What this report cannot prove:</b> whether every eligible Night / Resource hour was entered correctly before payroll ran. It checks the correction supported by the Workday statement${combined?'s':''}.</div></section><footer class="reportfooter">Retro Pay Checker · Created by Andrew Raposo · Independent community tool · Not affiliated with UMass Memorial or MNA<br>Calculation model 2026.09.23</footer></article></main>${actionScript({filename:`Retro-Pay-Checker-Night-Resource-Retro-${mode}.html`,shareText:'My Retro Pay Checker Night & Resource retro report',eventPrefix:`night-resource-report-${mode}`})}</body></html>`;
+}
